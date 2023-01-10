@@ -1,7 +1,8 @@
-#v2 -- nasty code not meant for kaleb to see
+#v2 -- 
 import tkinter as tk
 import vlc
 import os
+import include.music_player_tools as music_player_tools, include.player as player, include.ui_elements as ui_elements
 def rgb_hack(rgb):
     return "#%02x%02x%02x" % rgb
 
@@ -10,12 +11,13 @@ play_state="stopped"
 
 # duration = player.get_length()
 
+
 window = tk.Tk()
 window.title("VWES - VLC with Extra Steps")
 
 seeker_override=False
 
-song_queue = ["demo music/demo 1.mp3", "demo music/demo 2.mp3"]
+song_queue = music_player_tools.audioFile_scan("/home/kken/Music", "/") + music_player_tools.audioFile_scan("/media/kken/9C33-6BBD/Music", "/")
 selected_song = 0
 
 # for n in os.listdir("/home/pro/Music"):

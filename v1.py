@@ -1,4 +1,4 @@
-#v1 -- just a test
+#v1 -- 
 import tkinter as tk
 import vlc
 

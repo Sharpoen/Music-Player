@@ -1,18 +1,25 @@
 from tkinter import *
-from typing import List
+from include.music_player_tools import *
 
-from music_player_tools import *
 
-class songTable(Frame):
+class song_table(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
-        # self
+        
+        self.colors = {
+            "default":rgb((200, 200, 200)),
+            "selected":rgb((100, 100, 255)),
+            "empty":rgb((200, 200, 255))
+        }
+        
+        self.font="TkFixedFont"
 
         self.dir_seperator="/"
 
         self.title_label = Label(self, text="Song Table")
         self.title_label.pack(side=TOP, anchor=CENTER)
 
+        self.bonds = [] 
         self.songs = []
         self.song_names = []
         self.selected_song=0
@@ -24,6 +31,9 @@ class songTable(Frame):
         self.bBox = Frame(self.innerFrame, highlightbackground=rgb((0, 0, 0)), highlightthickness=1)
         self.bBox.pack(side = LEFT, anchor=W, expand=True, fill=BOTH)
         # self.bBox.pack(side = LEFT, anchor=W)
+
+        self.label_length = 50
+        self.label_scroll = 0
 
         self.sButtons = []
 
@@ -40,6 +50,17 @@ class songTable(Frame):
         self.remove_button.grid(column=2, row=0)
         
         self.edit_buttons.pack(side=BOTTOM, anchor=NW)
+
+    def bond(self, connection):
+        self.bonds += [connection]
+        connection.bonds += [self]
+
+    def get_label(self, text):
+        if len(text)>self.label_length:
+            return text[0:self.label_length-1]
+        else:
+            return text + " " * (self.label_length-len(text))
+        
 
     def update_scrollbar(self):
         self.scrollbar["to"]=len(self.songs)-(len(self.sButtons)-1)
@@ -62,15 +83,20 @@ class songTable(Frame):
         self.title_label["text"]=title
     def do_nothing(*filler_parameters):
         pass
-    def get_name(self, directory, seperator):
-        parts = directory.rsplit(seperator, 1)
-        fileName=""
-        if len(parts)>1:
-            fileName = parts[1]
-        else:
-            fileName = parts[0]
+    def get_name(self, directory :str, seperator :str):
+        if type(directory)!=str:
+            return "error"
+        if type(seperator)!=str:
+            return "error"
+        if self.songs:
+            parts = directory.rsplit(seperator, 1)
+            fileName=""
+            if len(parts)>1:
+                fileName = parts[1]
+            else:
+                fileName = parts[0]
 
-        return fileName.rsplit(".mp3", 1)[0]
+            return fileName.rsplit(".mp3", 1)[0]
 
     def generate_names(self, song_list, seperator):
         new_names=[]
@@ -80,6 +106,19 @@ class songTable(Frame):
     def select_song(self, song_number):
         self.selected_song=song_number
         self.update_buttons()
+    def song_path(self): 
+        if self.selected_song>=0 and self.selected_song<len(self.songs):
+            return self.songs[self.selected_song]
+    def next(self):
+        self.selected_song+=1
+        if self.selected_song>=len(self.songs):self.selected_song=0
+        self.update_buttons()
+        return self.songs[self.selected_song]
+    def previous(self):
+        self.selected_song-=1
+        if self.selected_song<0:self.selected_song=len(self.songs)-1
+        self.update_buttons()
+        return self.songs[self.selected_song]
     def swap_song(self, a, b):
         if a>=0 and b>=0 and a<len(self.songs) and b<len(self.songs):
             self.songs[a], self.songs[b] = self.songs[b], self.songs[a]
@@ -89,8 +128,7 @@ class songTable(Frame):
             self.update_buttons()
             return False
 
-
-    def make_buttons(self, ama):
+    def make_buttons(self, ama :int):
         for i in range(len(self.sButtons)):
             self.sButtons[i].destroy()
         
@@ -98,49 +136,47 @@ class songTable(Frame):
 
         for i in range(ama):
             if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                newButtons.append(Button(self.bBox, text=self.song_names[i+self.y_offset], pady=0, command=lambda i=i:self.select_song(i+self.y_offset)))
+                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  %s  "%self.get_label(self.song_names[i+self.y_offset]), pady=0, command=lambda i=i:self.select_song(i+self.y_offset)))
             else:
-                newButtons.append(Button(self.bBox, text="--", pady=0, command=self.do_nothing, bg=rgb((150, 150, 200))))
+                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  "+"-"*self.label_length+"  ", pady=0, command=self.do_nothing, bg=rgb((150, 150, 200))))
             
             if i+self.y_offset==self.selected_song:
                 if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                    newButtons[i]["text"]="[ %s ]"%self.song_names[i+self.y_offset]
-                newButtons[i]["bg"]=rgb((100, 100, 255))
+                    newButtons[i]["text"]="[ %s ]"%self.get_label(self.song_names[i+self.y_offset])
+                newButtons[i]["bg"]=self.colors["selected"]
             elif i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                newButtons[i]["bg"]=rgb((200, 200, 200))
+                newButtons[i]["bg"]=self.colors["default"]
 
         
         self.sButtons=newButtons.copy()
 
-    def update_buttons(self):
+    def update_buttons(self, *args):
+        if len(args)>=1: return
         if self.scrollbar["to"]!=len(self.songs):
             self.update_scrollbar()
         self.song_names = self.generate_names(self.songs, self.dir_seperator)
 
         for i in range(len(self.sButtons)):
             if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                self.sButtons[i]["text"] = self.song_names[i+self.y_offset]
+                self.sButtons[i]["text"] = "  %s  "%self.get_label(self.song_names[i+self.y_offset])
                 self.sButtons[i]["command"] = lambda i=i:self.select_song(i+self.y_offset)
             else:
-                self.sButtons[i]["text"] = "--"
+                self.sButtons[i]["text"] = "  "+"-"*self.label_length+"  "
                 self.sButtons[i]["command"] = self.do_nothing
-                self.sButtons[i]["bg"]=rgb((150, 150, 200))
+                self.sButtons[i]["bg"]=self.colors["empty"]
             
             if i+self.y_offset==self.selected_song:
                 if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                    self.sButtons[i]["text"]="[ %s ]"%self.song_names[i+self.y_offset]
-                self.sButtons[i]["bg"]=rgb((100, 100, 255))
+                    self.sButtons[i]["text"]="[ %s ]"%self.get_label(self.song_names[i+self.y_offset])
+                self.sButtons[i]["bg"]=self.colors["selected"]
             elif i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                self.sButtons[i]["bg"]=rgb((200, 200, 200))
-
-
-
+                self.sButtons[i]["bg"]=self.colors["default"]
+        for bond in self.bonds:
+            bond.update_buttons(False)
 
     def pack_buttons(self):
-        
         for i in range(len(self.sButtons)):
-            self.sButtons[i].pack(side=TOP, anchor=W, expand=True, fill=X)
-    # def 
+            self.sButtons[i].grid(column=0, row=i*2)
 
     def import_songs(self, songs):
         for song in songs:
@@ -157,15 +193,12 @@ class songTable(Frame):
             self.selected_song=len(self.songs)-1
         self.update_buttons()
 
-def print_something(something):
-    print(something)
-
 def demo():
     window = Tk()
 
     mainframe = Frame(window)
 
-    new_box = songTable(mainframe)
+    new_box = song_table(mainframe)
     new_box.make_buttons(10)
     new_box.pack_buttons()
     new_box.pack(expand=True, fill=BOTH)
