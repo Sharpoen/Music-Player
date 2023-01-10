@@ -55,12 +55,20 @@ directories = []
 with open("saves/directories.txt", "r") as file:
     for i in file.readlines():
         directories+=[i.replace('\n', '')]
+filter_directories = {}
+
 
 def compileSongs(*args):
     all_songs.songs.clear()
     for i in directories:
-        all_songs.songs += audioFile_scan(i, dir_sep)
+        if not (i in filter_directories):
+            filter_directories[i] = IntVar()
+            filter_directories[i].set(1)
+        if filter_directories[i].get() == 1:
+            all_songs.songs += sorted(audioFile_scan(i, dir_sep))
     all_songs.update_buttons()
+    update_directory_filter_menu()
+
 def manage_directories():
     dir_window = Toplevel(window)
     dir_window.title("Directory Manager")
@@ -113,7 +121,7 @@ def manage_directories():
 
     def save_directories():
         with open("saves/directories.txt", "w") as file:
-            for n in all_songs.songs:
+            for n in all_directories.songs:
                 file.write("%s\n"%n)
     save_button = Button(all_directories.edit_buttons, pady=0, command = save_directories, text = "Save")
     save_button.grid(column=3, row=0)
@@ -184,6 +192,19 @@ insert_to_playlist.grid(column=3, row=0)
 
 insert_to_library = Button(tables["all songs"][0].edit_buttons, text="copy to Library ->", pady=0, command=lambda:addto(tables["all songs"][0], tables["all songs"][1]))
 insert_to_library.grid(column=3, row=0)
+
+edit_directory_filter_menu_button = Menubutton(menus["all songs"], text="Filter Directories")
+edit_directory_filter_menu_button.grid(column=0, row=2)
+edit_directory_filter_menu = Menu(edit_directory_filter_menu_button, tearoff=0)
+edit_directory_filter_menu_button["menu"] = edit_directory_filter_menu
+def update_directory_filter_menu():
+    edit_directory_filter_menu.delete(0, END)
+    for directory in directories:
+        if not (directory in filter_directories):
+            filter_directories[directory] = IntVar()
+            filter_directories[directory].set(1)
+        edit_directory_filter_menu.add_checkbutton(label = directory, variable = filter_directories[directory], command=compileSongs)
+update_directory_filter_menu()
 
 tables["all songs"][0].songs.clear()
 compileSongs()
