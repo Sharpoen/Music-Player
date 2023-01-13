@@ -25,7 +25,9 @@ song_label = Label(top_panel, text="demo 1")
 mainmenu = Menu(window)
 
 filemenu = Menu(mainmenu, tearoff = 0)
-mainmenu.add_cascade(label="File", menu=filemenu)
+theme_menu = Menu(mainmenu, tearoff = 0)
+mainmenu.add_cascade(label="App", menu=filemenu)
+mainmenu.add_cascade(label="Theme", menu=theme_menu)
 
 window.config(menu=mainmenu)
 
@@ -71,7 +73,7 @@ def compileSongs(*args):
 
 def manage_directories():
     dir_window = Toplevel(window)
-    dir_window.title("Directory Manager")
+    dir_window.title("Source Manager")
     dir_lookup_entry_label = Label(dir_window, text="Directory")
     dir_lookup_entry = Entry(dir_window, width=50)
     all_directories = song_table(dir_window)
@@ -100,7 +102,7 @@ def manage_directories():
         dir_lookup_entry.insert(0, new_dir)
         update_possibilities()
     possibilities.command = select_possibility
-    possibilities.stack = 20
+    possibilities.stack = 5
 
     def update_possibilities(*burn):
         cur_dir = dir_lookup_entry.get()
@@ -115,6 +117,7 @@ def manage_directories():
             for option in new_options:
                 if option[0]=='.' and option!= "..": continue
                 possibilities.options += [option]
+            possibilities.stack = 1 + int(len(possibilities.options)/7)
             possibilities.generate_buttons()
             possibilities.packItems()
     update_possibilities()
@@ -157,7 +160,24 @@ def manage_directories():
     possibilities.grid(column=0, row=1, columnspan=4)
     all_directories.grid(column=0, row=3, columnspan=2)
 
-filemenu.add_command(label = "Manage Directories", command=manage_directories)
+filemenu.add_command(label = "Manage Sources", command=manage_directories)
+filemenu.add_separator()
+filemenu.add_command(label = "Manage Playlists")
+filemenu.add_command(label = "Save Playlist")
+filemenu.add_command(label = "Open Playlist")
+filemenu.add_separator()
+filemenu.add_command(label = "Quit", command=window.quit)
+
+
+theme_selection = Menu(theme_menu)
+theme_menu.add_command(label = "Manage Themes", command=compileSongs)
+theme_menu.add_cascade(label = "Select Theme", menu=theme_selection)
+theme_menu.add_separator()
+theme_menu.add_checkbutton(label = "Enable Nothing New Mode")
+
+theme_selection.add_radiobutton(label="Dark Theme")
+theme_selection.add_radiobutton(label="Bright Theme")
+theme_selection.add_radiobutton(label="Special Theme")
 
 def update_menu():
     for menu in menus:
@@ -169,11 +189,12 @@ def update_menu():
 table_menu.command=update_menu
 table_menu.packItems()
 table_menu.grid(row=1)
+table_menu.set_mode("all songs")
 
 for menu in menus:
     for i, table in enumerate(tables[menu]):
         # tables[menu] = song_table(menus[menu])
-        table.make_buttons(10)
+        table.make_buttons(15)
         table.pack_buttons()
         # table.title_label.pack_forget()
         table.grid(column=i, row=1)
@@ -193,7 +214,7 @@ insert_to_playlist.grid(column=3, row=0)
 insert_to_library = Button(tables["all songs"][0].edit_buttons, text="copy to Library ->", pady=0, command=lambda:addto(tables["all songs"][0], tables["all songs"][1]))
 insert_to_library.grid(column=3, row=0)
 
-edit_directory_filter_menu_button = Menubutton(menus["all songs"], text="Filter Directories")
+edit_directory_filter_menu_button = Menubutton(menus["all songs"], text="Filter Sources")
 edit_directory_filter_menu_button.grid(column=0, row=2)
 edit_directory_filter_menu = Menu(edit_directory_filter_menu_button, tearoff=0)
 edit_directory_filter_menu_button["menu"] = edit_directory_filter_menu
@@ -208,7 +229,7 @@ update_directory_filter_menu()
 
 tables["all songs"][0].songs.clear()
 compileSongs()
-playlist.songs += sorted(audioFile_scan("/media/kken/9C33-6BBD/Music/Kansas", '/')) + sorted(audioFile_scan("/media/kken/9C33-6BBD/Music/Kate Bush", '/'))
+playlist.songs.clear()
 
 
 volume = Scale(top_panel, from_=0, to=100, orient=HORIZONTAL, showvalue=False, sliderlength=15, length=250, border=1, command=playMan.set_volume)
