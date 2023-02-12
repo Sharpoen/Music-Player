@@ -14,6 +14,6 @@ def audioFile_scan(directory, seperator):
     for n in os.listdir(directory):
         if os.path.isdir(directory+seperator+n):
             found_songs+=audioFile_scan(directory+seperator+n, seperator)
-        elif ".mp3" in n and not directory+seperator+n in found_songs:
+        elif any(o in n for o in ["mp3", "wav"]) and not directory+seperator+n in found_songs:
             found_songs.append(directory+seperator+n)
     return found_songs

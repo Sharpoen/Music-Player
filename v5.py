@@ -6,11 +6,16 @@ from include.music_player_tools import *
 from include.player import *
 from include.songtable import *
 from include.ui_elements import *
+from components import source_manager
+
 import os
+import platform
 
 quit = False
 
 dir_sep = '/'
+if platform.system() == "Windows":
+    dir_sep = '\\'
 
 playMan = audioPlayer()
 playMan.loadPath("demo music/demo 1.mp3")
@@ -71,96 +76,7 @@ def compileSongs(*args):
     all_songs.update_buttons()
     update_directory_filter_menu()
 
-def manage_directories():
-    dir_window = Toplevel(window)
-    dir_window.title("Source Manager")
-    dir_lookup_entry_label = Label(dir_window, text="Directory")
-    dir_lookup_entry = Entry(dir_window, width=50)
-    all_directories = song_table(dir_window)
-    all_directories.set_title("All Directories")
-    all_directories.songs = directories
-    all_directories.song_names = all_directories.songs
-    def return_same(a, *burn):
-        return a
-    something = {"cur_dir":'/'}
-    possibilities = selection_array(dir_window, [])
-    def select_possibility():
-        dir_name = possibilities.mode
-        if not type(dir_name) == str: return
-        new_dir = ''+something["cur_dir"]
-        while dir_sep+dir_sep in new_dir:
-            new_dir = new_dir.replace(dir_sep+dir_sep, dir_sep)
-        if dir_name == "..":
-            new_dir = new_dir.rsplit(dir_sep, 2)[0]
-            dir_lookup_entry.delete(0, END)
-            dir_lookup_entry.insert(0, new_dir+'/')
-            update_possibilities()
-            return
-        if os.path.isdir(new_dir + dir_name + '/'): new_dir+=dir_name + '/'
-
-        dir_lookup_entry.delete(0, END)
-        dir_lookup_entry.insert(0, new_dir)
-        update_possibilities()
-    possibilities.command = select_possibility
-    possibilities.stack = 5
-
-    def update_possibilities(*burn):
-        cur_dir = dir_lookup_entry.get()
-        if os.path.isdir(cur_dir+dir_sep):
-            cur_dir+=dir_sep
-        if burn and os.path.isdir(cur_dir+burn[0].char+dir_sep):
-            cur_dir+=burn[0].char+dir_sep
-        if os.path.isdir(cur_dir):
-            possibilities.options.clear()
-            something["cur_dir"] = cur_dir
-            new_options = [".."] + os.listdir(cur_dir)
-            for option in new_options:
-                if option[0]=='.' and option!= "..": continue
-                possibilities.options += [option]
-            possibilities.stack = 1 + int(len(possibilities.options)/7)
-            possibilities.generate_buttons()
-            possibilities.packItems()
-    update_possibilities()
-
-    def save_directories():
-        with open("saves/directories.txt", "w") as file:
-            for n in all_directories.songs:
-                file.write("%s\n"%n)
-    save_button = Button(all_directories.edit_buttons, pady=0, command = save_directories, text = "Save")
-    save_button.grid(column=3, row=0)
-
-    dir_lookup_entry.bind('<Key>', update_possibilities)
-
-    all_directories.generate_names = return_same
-    all_directories.label_length = 50
-
-    all_directories.make_buttons(5)
-    all_directories.update_buttons()
-    all_directories.pack_buttons()
-
-    def insert_directory():
-        new_dir = dir_lookup_entry.get()
-        if os.path.isdir(new_dir) and not new_dir in all_songs.songs:
-            all_directories.songs+=[new_dir]
-            all_directories.update_buttons()
-            all_songs.songs.clear()
-            all_songs.update_buttons()
-            compileSongs()
-
-    def new_delete():
-        all_directories.remove_song(all_directories.selected_song)
-        compileSongs()
-    all_directories.remove_button["command"] = new_delete
-
-    insert_directory_button = Button(dir_window, text="+", command=insert_directory, padx=0, pady=0)
-    
-    dir_lookup_entry_label.grid(column=0, row=0)
-    dir_lookup_entry.grid(column=1, row=0, sticky=W+E)
-    insert_directory_button.grid(column=2, row=0, sticky=W)
-    possibilities.grid(column=0, row=1, columnspan=4)
-    all_directories.grid(column=0, row=3, columnspan=2)
-
-filemenu.add_command(label = "Manage Sources", command=manage_directories)
+filemenu.add_command(label = "Manage Sources", command=lambda : source_manager.manage_directories(window, directories, compileSongs, '/'))
 filemenu.add_separator()
 filemenu.add_command(label = "Manage Playlists")
 filemenu.add_command(label = "Save Playlist")
@@ -248,7 +164,7 @@ def update_seeker():
         length = playMan.player.get_length() / 1000
 
         song_name = playlist.get_name(current_song, '/')
-        playlist.set_title(song_name)
+        playlist.set_title("Playlist - %s"%song_name)
         song_label["text"] = song_name
 
         if seeker_override: seeker_label_text = "%s:%02i"%(int(length*(seeker.get()/100)/60), int(length*(seeker.get()/100))%60)

@@ -113,6 +113,7 @@ class song_table(Frame):
         self.selected_song+=1
         if self.selected_song>=len(self.songs):self.selected_song=0
         self.update_buttons()
+        if len(self.songs) == 0: return None
         return self.songs[self.selected_song]
     def previous(self):
         self.selected_song-=1
