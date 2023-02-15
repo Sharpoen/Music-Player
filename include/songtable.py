@@ -7,6 +7,7 @@ class song_table(Frame):
         Frame.__init__(self, master)
         
         self.colors = {
+            "text":rgb((0, 0, 0)),
             "default":rgb((200, 200, 200)),
             "selected":rgb((100, 100, 255)),
             "empty":rgb((200, 200, 255))
@@ -39,6 +40,9 @@ class song_table(Frame):
 
         self.scrollbar = Scale(self.innerFrame, from_=-1, to=10, orient=VERTICAL, showvalue=0, sliderlength=15, command=self.set_y_offset)
         self.scrollbar.pack(side=LEFT, anchor=W, expand=True, fill=Y)
+        self.scrollbar.bind("<Button-4>", self.scroll)
+        self.scrollbar.bind("<Button-5>", self.scroll)
+        # self.scrollbar.bind("<MouseWheel>", self.scroll)
 
         self.edit_buttons = Frame(self)
         self.swap_up_button=Button(self.edit_buttons, text="↑", pady=0, command=self.swap_up)
@@ -61,9 +65,15 @@ class song_table(Frame):
         else:
             return text + " " * (self.label_length-len(text))
         
-
     def update_scrollbar(self):
         self.scrollbar["to"]=len(self.songs)-(len(self.sButtons)-1)
+
+    def scroll(self, value, *burn):
+        if value.num==4:
+            self.set_y_offset(self.y_offset-1)
+        if value.num==5:
+            self.set_y_offset(self.y_offset+1)
+        self.scrollbar.set(self.y_offset)
 
     def set_y_offset(self, offset):
         if int(offset)!=self.y_offset:
@@ -137,9 +147,9 @@ class song_table(Frame):
 
         for i in range(ama):
             if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
-                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  %s  "%self.get_label(self.song_names[i+self.y_offset]), pady=0, command=lambda i=i:self.select_song(i+self.y_offset)))
+                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  %s  "%self.get_label(self.song_names[i+self.y_offset]), pady=0, command=lambda i=i:self.select_song(i+self.y_offset), fg=self.colors["text"]))
             else:
-                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  "+"-"*self.label_length+"  ", pady=0, command=self.do_nothing, bg=rgb((150, 150, 200))))
+                newButtons.append(Button(self.bBox, font=self.font, anchor=W, text="  "+"-"*self.label_length+"  ", pady=0, command=self.do_nothing, bg=self.colors["empty"], fg=self.colors["text"]))
             
             if i+self.y_offset==self.selected_song:
                 if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
@@ -148,7 +158,9 @@ class song_table(Frame):
             elif i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
                 newButtons[i]["bg"]=self.colors["default"]
 
-        
+            newButtons[i].bind("<Button-4>", self.scroll)
+            newButtons[i].bind("<Button-5>", self.scroll)
+       
         self.sButtons=newButtons.copy()
 
     def update_buttons(self, *args):
@@ -158,6 +170,7 @@ class song_table(Frame):
         self.song_names = self.generate_names(self.songs, self.dir_seperator)
 
         for i in range(len(self.sButtons)):
+            self.sButtons[i]["fg"] = self.colors["text"]
             if i+self.y_offset>=0 and i+self.y_offset<len(self.songs):
                 self.sButtons[i]["text"] = "  %s  "%self.get_label(self.song_names[i+self.y_offset])
                 self.sButtons[i]["command"] = lambda i=i:self.select_song(i+self.y_offset)

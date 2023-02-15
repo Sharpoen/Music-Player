@@ -2,9 +2,24 @@ from tkinter import *
 from include.ui_elements import *
 from include.songtable import *
 
+
+
+_manage_directories_open_ = False
 def manage_directories(master : Tk, directories : list, compile_songs : "function", directory_seperator : str):
+    global _manage_directories_open_
+    if _manage_directories_open_ == True:
+        return
+    _manage_directories_open_ = True
     window = Toplevel(master)
+    def close():
+        global _manage_directories_open_
+        _manage_directories_open_ = False
+        window.destroy()
+
+    window.protocol("WM_DELETE_WINDOW", close)
     window.title("Source Manager")
+
+    
     dir_lookup_entry_label = Label(window, text="Directory")
     dir_lookup_entry = Entry(window, width=50)
     all_directories = song_table(window)

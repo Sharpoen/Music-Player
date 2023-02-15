@@ -59,8 +59,10 @@ class selection_array(Frame):
     def __init__(self, master, options):
         Frame.__init__(self, master)
         self.colors = {
+            "text":rgb((0, 0, 0)),
             "default":rgb((200, 200, 200)),
-            "selected":rgb((100, 100, 255))
+            "selected":rgb((100, 100, 255)),
+            "empty":rgb((200, 200, 255))
         }
         self.options = options
         self.mode = None
@@ -76,7 +78,7 @@ class selection_array(Frame):
         for option in self.options:
             self.buttons.append(
                 Button(
-                    self, text=option, command=lambda option=option:self.set_mode(option), background=self.colors["default"], pady=0
+                    self, text=option, command=lambda option=option:self.set_mode(option), background=self.colors["default"], foreground=self.colors["text"], pady=0
                     )
                 )
     def packItems(self):
@@ -91,3 +93,8 @@ class selection_array(Frame):
             else:button["bg"]=self.colors["default"]
         self.mode=mode
         self.command(*self.args)
+    def recolor(self):
+        for button, option in zip(self.buttons, self.options):
+            if self.mode==option:button["bg"]=self.colors["selected"]
+            else:button["bg"]=self.colors["default"]
+            button["fg"] = self.colors["text"]

@@ -11,6 +11,32 @@ from components import source_manager
 import os
 import platform
 
+themes = {
+    "Bright Theme":{
+        "background":rgb((210, 210, 255)),
+        "text":rgb((0, 0, 0)),
+        "default":rgb((200, 200, 200)),
+        "selected":rgb((100, 100, 255)),
+        "empty":rgb((200, 200, 255))
+    },
+    "Dark Theme":{
+        "background":rgb((10, 10, 10)),
+        "text":rgb((255, 255, 255)),
+        "default":rgb((50, 50, 50)),
+        "selected":rgb((50, 50, 255)),
+        "empty":rgb((75, 75, 75))
+    },
+    "Special Theme":{
+        "background":rgb((0,255,0)),
+        "text":rgb((0, 0, 0)),
+        "default":rgb((50, 100, 100)),
+        "selected":rgb((50, 255, 50)),
+        "empty":rgb((75, 75, 75))
+    }
+}
+theme = themes["Bright Theme"]
+
+
 quit = False
 
 dir_sep = '/'
@@ -91,9 +117,39 @@ theme_menu.add_cascade(label = "Select Theme", menu=theme_selection)
 theme_menu.add_separator()
 theme_menu.add_checkbutton(label = "Enable Nothing New Mode")
 
-theme_selection.add_radiobutton(label="Dark Theme")
-theme_selection.add_radiobutton(label="Bright Theme")
-theme_selection.add_radiobutton(label="Special Theme")
+
+selected_theme = StringVar()
+
+bg_recolor = []
+fg_recolor = []
+
+def select_theme():
+    global theme
+    theme = themes[selected_theme.get()]
+    table_menu["bg"] = theme["background"]
+    table_menu.colors = theme
+    table_menu.recolor()
+    update_directory_filter_menu()
+
+    for i in bg_recolor:
+        i["bg"] = theme["background"]
+    for i in fg_recolor:
+        i["fg"] = theme["text"]
+    for i in tables:
+        menus[i]["bg"] = theme["background"]
+        for n in tables[i]:
+            n.colors = theme
+            n.title_label["bg"] = theme["background"]
+            n.title_label["fg"] = theme["text"]
+            n["bg"] = theme["background"]
+            n.innerFrame["bg"] = theme["background"]
+            n.bBox["bg"] = theme["background"]
+            n.update_buttons()
+    # change all themes here
+selected_theme.set("Bright Theme")
+theme_selection.add_radiobutton(label="Dark Theme", variable=selected_theme, command=select_theme)
+theme_selection.add_radiobutton(label="Bright Theme", variable=selected_theme, command=select_theme)
+theme_selection.add_radiobutton(label="Special Theme", variable=selected_theme, command=select_theme)
 
 def update_menu():
     for menu in menus:
@@ -130,18 +186,42 @@ insert_to_playlist.grid(column=3, row=0)
 insert_to_library = Button(tables["all songs"][0].edit_buttons, text="copy to Library ->", pady=0, command=lambda:addto(tables["all songs"][0], tables["all songs"][1]))
 insert_to_library.grid(column=3, row=0)
 
-edit_directory_filter_menu_button = Menubutton(menus["all songs"], text="Filter Sources")
-edit_directory_filter_menu_button.grid(column=0, row=2)
-edit_directory_filter_menu = Menu(edit_directory_filter_menu_button, tearoff=0)
-edit_directory_filter_menu_button["menu"] = edit_directory_filter_menu
+dir_filter = Frame(menus["all songs"])
+dir_filter_enabled = False
+dir_filter_children = {}
 def update_directory_filter_menu():
-    edit_directory_filter_menu.delete(0, END)
-    for directory in directories:
+    global dir_filter_children
+    for i in dir_filter_children:
+        dir_filter_children[i].grid_forget()
+    dir_filter_children.clear()
+    for i, directory in enumerate(directories):
         if not (directory in filter_directories):
             filter_directories[directory] = IntVar()
             filter_directories[directory].set(1)
-        edit_directory_filter_menu.add_checkbutton(label = directory, variable = filter_directories[directory], command=compileSongs)
+        dir_filter_children[directory] = Checkbutton(
+            dir_filter, text=directory, variable=filter_directories[directory], command=compileSongs,
+            foreground=theme["text"], background=theme["default"]
+        )
+        if filter_directories[directory].get():
+            dir_filter_children[directory]["bg"] = theme["selected"]
+        dir_filter_children[directory].grid(column=i%2, row=i//2)
 update_directory_filter_menu()
+
+def _toggle_dir_filter_():
+    global dir_filter_enabled
+    if dir_filter_enabled:
+        toggle_dir_filter["bg"] = theme["default"]
+        dir_filter_enabled=False
+        dir_filter.grid_forget()
+    else:
+        toggle_dir_filter["bg"] = theme["selected"]
+        dir_filter_enabled=True
+        dir_filter.grid(column=0, columnspan=2, row=3)
+
+
+toggle_dir_filter = Button(menus["all songs"], text="Filter", command=_toggle_dir_filter_, pady=0)
+toggle_dir_filter.grid(column=0, row=2)
+
 
 tables["all songs"][0].songs.clear()
 compileSongs()
@@ -211,6 +291,14 @@ seekbar_thread.start()
 
 top_panel.pack(side=TOP, anchor=W)
 tables_panel.pack()
+
+fg_recolor = [song_label,insert_to_playlist, insert_to_library, toggle_dir_filter,
+    song_label, volume_label, seeker_label,]
+bg_recolor = fg_recolor + [playCtrl, top_panel, window, tables_panel, dir_filter]
+frames = []
+select_theme()
+
+
 window.mainloop()
 quit=True
 playMan.exit()
