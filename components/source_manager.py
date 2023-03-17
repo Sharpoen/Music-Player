@@ -22,13 +22,13 @@ def manage_directories(master : Tk, directories : list, compile_songs : "functio
     
     dir_lookup_entry_label = Label(window, text="Directory")
     dir_lookup_entry = Entry(window, width=50)
-    all_directories = song_table(window)
+    all_directories = song_table(window, directory_seperator)
     all_directories.set_title("All Directories")
     all_directories.songs = directories
     all_directories.song_names = all_directories.songs
     def return_same(a, *burn):
         return a
-    something = {"cur_dir":'/'}
+    something = {"cur_dir":directory_seperator}
     possibilities = selection_array(window, [])
     def select_possibility():
         dir_name = possibilities.mode
@@ -39,10 +39,10 @@ def manage_directories(master : Tk, directories : list, compile_songs : "functio
         if dir_name == "..":
             new_dir = new_dir.rsplit(directory_seperator, 2)[0]
             dir_lookup_entry.delete(0, END)
-            dir_lookup_entry.insert(0, new_dir+'/')
+            dir_lookup_entry.insert(0, new_dir+directory_seperator)
             update_possibilities()
             return
-        if os.path.isdir(new_dir + dir_name + '/'): new_dir+=dir_name + '/'
+        if os.path.isdir(new_dir + dir_name + directory_seperator): new_dir+=dir_name + directory_seperator
 
         dir_lookup_entry.delete(0, END)
         dir_lookup_entry.insert(0, new_dir)

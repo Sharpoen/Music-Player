@@ -3,7 +3,7 @@ from include.music_player_tools import *
 
 
 class song_table(Frame):
-    def __init__(self, master):
+    def __init__(self, master, directory_seperator):
         Frame.__init__(self, master)
         
         self.colors = {
@@ -15,7 +15,7 @@ class song_table(Frame):
         
         self.font="TkFixedFont"
 
-        self.dir_seperator="/"
+        self.dir_seperator=directory_seperator
 
         self.title_label = Label(self, text="Song Table")
         self.title_label.pack(side=TOP, anchor=CENTER)

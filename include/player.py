@@ -42,3 +42,7 @@ class audioPlayer:
         self.player.set_position(percentage/100)
     def set_volume(self, volume):
         self.player.audio_set_volume(int(volume))
+
+if __name__ == "__main__":
+    print("Testing Audio Player")
+    test = audioPlayer()

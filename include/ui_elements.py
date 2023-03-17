@@ -2,15 +2,15 @@ from tkinter import *
 from include.music_player_tools import *
 
 class play_panel(Frame):
-    def __init__(self, master, playManager):
+    def __init__(self, master, playManager, directory_seperator):
         Frame.__init__(self, master)
         self.images = {
-            "playing":PhotoImage(file = "images/playButton.png"),
-            "paused":PhotoImage(file = "images/pauseButton.png"),
-            "stopped":PhotoImage(file = "images/stopButton.png"),
-            "previous":PhotoImage(file = "images/previousButton.png"),
-            "next":PhotoImage(file = "images/nextButton.png"),
-            "empty":PhotoImage(file = "images/emptyButton.png"),
+            "playing":PhotoImage(file = f"images{directory_seperator}playButton.png"),
+            "paused":PhotoImage(file = f"images{directory_seperator}pauseButton.png"),
+            "stopped":PhotoImage(file = f"images{directory_seperator}stopButton.png"),
+            "previous":PhotoImage(file = f"images{directory_seperator}previousButton.png"),
+            "next":PhotoImage(file = f"images{directory_seperator}nextButton.png"),
+            "empty":PhotoImage(file = f"images{directory_seperator}emptyButton.png"),
         }
         for n in self.images:
             self.images[n] = self.images[n].zoom(3)

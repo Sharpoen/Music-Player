@@ -70,9 +70,9 @@ menus = {
 }
 table_menu = selection_array(tables_panel, ["all songs", "library", "playlist"])
 tables = {
-    "all songs":[song_table(menus["all songs"]), song_table(menus["all songs"])],
-    "library":[song_table(menus["library"]), song_table(menus["library"])],
-    "playlist":[song_table(menus["playlist"])]
+    "all songs":[song_table(menus["all songs"], dir_sep), song_table(menus["all songs"], dir_sep)],
+    "library":[song_table(menus["library"], dir_sep), song_table(menus["library"], dir_sep)],
+    "playlist":[song_table(menus["playlist"], dir_sep)]
 }
 playlist = tables["playlist"][0]
 all_songs = tables["all songs"][0]
@@ -85,9 +85,14 @@ tables["all songs"][1].set_title("Library")
 tables["all songs"][1].songs = tables["library"][0].songs
 
 directories = []
-with open("saves/directories.txt", "r") as file:
-    for i in file.readlines():
-        directories+=[i.replace('\n', '')]
+if os.path.isdir("saves"):
+    with open(f"saves{dir_sep}directories.txt", "r") as file:
+        for i in file.readlines():
+            directories+=[i.replace('\n', '')]
+else:
+    os.mkdir("saves")
+    with open(f"saves{dir_sep}directories.txt", "w") as file:
+        file.write("")
 filter_directories = {}
 
 
@@ -243,7 +248,7 @@ def update_seeker():
         seconds = playMan.player.get_time() / 1000
         length = playMan.player.get_length() / 1000
 
-        song_name = playlist.get_name(current_song, '/')
+        song_name = playlist.get_name(current_song, dir_sep)
         playlist.set_title("Playlist - %s"%song_name)
         song_label["text"] = song_name
 
@@ -272,7 +277,7 @@ def seeker_release(dat):
     seeker_override=False
     playMan.player.set_position(seeker.get()/100)
 
-playCtrl = play_panel(top_panel, playMan)
+playCtrl = play_panel(top_panel, playMan, dir_sep)
 playCtrl.packItems(playMan.state)
 
 
