@@ -13,43 +13,37 @@ class songController(ttk.Frame):
         ttk.Frame.__init__(self, master)
         self.audio = audioPlayer()
         self.playing = "stopped"
-        self.inactive = ttk.Button(self, text="", command=self.playCmd, bootstyle = "success-outline")
-        self.active = ttk.Button(self, text="", command=self.playCmd, bootstyle = "success")
-        self.current = self.inactive
+        self.play = ttk.Button(self, text="", command=self.playCmd, bootstyle = "success-outline")
         self.stop = ttk.Button(self, text="Stop", command=self.stopCmd, state="disabled", bootstyle = "danger-outline", width=5)
         self.previous = ttk.Button(self, text="<", command=self.previousCmd, bootstyle = "warning-outline")
         self.next = ttk.Button(self, text=">", command=self.nextCmd, bootstyle = "warning-outline")
     def playCmd(self):
-        self.current = self.active
-        if self.playing == "stopped":
-            self.playing = "playing"
-        elif self.playing == "paused":
-            self.playing = "playing"
-        else:
+        self.play.configure(style="success.TButton")
+        if self.playing == "playing":
             self.playing = "paused"
+            self.play.configure(text="Play")
+        else:
+            self.playing = "playing"
+            self.play.configure(text="Pause")
         self.audio.playToggle()
         self.stop.configure(state="enabled")
-        self.packChildren()
     def stopCmd(self):
-        self.current = self.inactive
+        self.play.configure(style="success.Outline.TButton")
         self.playing = "stopped"
         self.audio.stop()
         self.stop.configure(state="disabled")
-        self.packChildren()
     def previousCmd(self):
         print("playing previous song")
     def nextCmd(self):
         print("playing next song")
     def packChildren(self):
-        if self.current == self.active:
-            self.inactive.grid_forget()
-        else:
-            self.active.grid_forget()
         if self.playing == "playing":
-            self.current.configure(text="Pause")
+            self.play.configure(text="Pause")
         else:
-            self.current.configure(text="Play")
-        self.current.grid(row=0, column=1, sticky="ew")
+            self.play.configure(text="Play")
+            if self.playing == "stopped":
+                self.play.configure(style="success.Outline.TButton")
+        self.play.grid(row=0, column=1, sticky="ew")
         self.stop.grid(row=1, column=1, sticky="ew")
         self.previous.grid(row=0, column=0, rowspan=2, sticky="ns")
         self.next.grid(row=0, column=2, rowspan=2, sticky="ns")
@@ -113,7 +107,7 @@ seeker = seekerController(top, sc.audio)
 seeker.packChildren()
 seeker.grid(column=1, row=0, sticky="ew")
 
-sc.audio.load("song.mp3")
+sc.audio.load("/media/kken/9C33-6BBD/Music/Kate Bush/Hounds Of Love/01 - Running Up That Hill (A Deal With God).mp3")
 
 top.pack(side = "top", anchor="w")
 
